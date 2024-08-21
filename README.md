@@ -1,25 +1,25 @@
-# Elevator Project
+# Elevators System Project
 
-## General Objective
+## 🎯General Objective
 
 - Data Structure work that consists of creating an elevator system using pointers in C.
 - Implement some data structures learned in the course in this project.
 
-## Project Overview
+## 🗂️Project Overview
 
 - The application consists of two modes: single elevator and multi elevators.
 
-### Single Elevator
+### 🛗Single Elevator
 
-#### Internal Configuration
+#### 🧩Internal Configuration
 
 - The elevator will have access to N floors, so there will be N buttons for each floor, including the first floor and possible basements, plus 3 buttons, one to close the doors, one to open the doors and the emergency button.
 
-#### External Configuration
+#### 🏢External Configuration
 
 - The elevator will have two buttons: one to go up and one to go down.
 
-#### Standard Operation
+#### ⚙️Standard Operation
 
 - Whenever there is no external or internal call, it will go to the first floor and will remain with the doors open.
 
@@ -29,23 +29,23 @@
 
 - The internal door open button, when pressed, if the doors are closed, will open the doors, but only if the elevator is stopped on a certain floor. If the doors are open, they will remain open.
 
-#### Operation Of Cases For a Single Elevator
+#### 📊Operation Of Cases For a Single Elevator
 
 - If the elevator starts an action of going up or down, it must complete its action while picking up passengers with that same action, going up or down.
 
 - The next passenger to be disembarked is always the one who, in the same action, going up or down, is closest to the current floor of the elevator.
 
-### Multi Elevators
+### 🛗🛗Multi Elevators
 
-#### Internal Configuration
+#### 🧩Internal Configuration
 
 - The elevator will have only 3 buttons: open doors, close doors and emergency.
 
-#### External Configuration
+#### 🏢External Configuration
 
 - The elevator will have a floor selection panel, which will indicate which elevator you should enter.
 
-#### Standard Operation
+#### ⚙️Standard Operation
 
 - Whenever there is no external or internal call, it will go to the first floor and will remain with the doors open.
 
@@ -55,7 +55,7 @@
 
 - The internal door open button, when pressed, if the doors are closed, will open the doors, but only if the elevator is stopped on a certain floor. If the doors are open, they will remain open.
 
-#### How To Operate Multiple Elevators
+#### 📘How To Operate Multiple Elevators
 
 - As long as there are empty elevators stopped on the first floor, any new person who is on any floor and types on the panel will be redirected to one of these elevators.
 
@@ -63,15 +63,15 @@
 
 - The next passenger to be disembarked is always the one who, in the same action, getting off or going up, is closest to the current floor of the elevator.
 
-## Team
+## 🏆Team
 
 - Conrado Einstein
 - Hiel Saraiva
 
-## Versions
+## 🆙Versions
 
 - C99
 
-## Tools
+## 🔧Tools
 
 - [CLion](https://www.jetbrains.com/clion/)
