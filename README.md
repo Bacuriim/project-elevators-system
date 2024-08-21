@@ -35,6 +35,8 @@
 
 - The next passenger to be disembarked is always the one who, in the same action, going up or down, is closest to the current floor of the elevator.
 
+##
+
 ### 🛗🛗Multi Elevators
 
 #### 🧩Internal Configuration
