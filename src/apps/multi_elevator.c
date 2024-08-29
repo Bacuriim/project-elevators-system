@@ -9,16 +9,6 @@ typedef struct passengers {
     int call_cooldown;
 } passengers;
 
-//
-typedef struct elevators {
-    char name[2]; // For example: E1, E4, E6
-    int actual_floor;
-    int direction; // 1 = up, -1 = down
-    struct doubly_linked_floor_list *route; // the route the elevator must follow
-    struct doubly_linked_passenger_list *passengers_inside; // the passengers who are inside the elevator
-    // struct doubly_linked_passenger_list *passengers_to_enter // the passengers that pressed the button and are waiting for enter the elevator
-} elevators;
-
 typedef struct doubly_linked_passenger_list {
     passengers passengers;
     struct doubly_linked_passenger_list *next;
@@ -31,60 +21,107 @@ typedef struct doubly_linked_floor_list {
     struct doubly_linked_floor_list *prev;
 } floor_list;
 
+typedef struct elevators {
+    char name[2]; // For example: E1, E4, E6
+    int actual_floor;
+    int direction; // 1 = up, -1 = down
+    struct doubly_linked_floor_list **actual_route; // point to the actual route, up_route or down_route
+    struct doubly_linked_floor_list *up_route; // the route the elevator must follow if it's going up
+    struct doubly_linked_floor_list *down_route; // the route the elevator must follow if it's going down
+    struct doubly_linked_passenger_list *passengers_inside; // the passengers who are inside the elevator
+    struct doubly_linked_passenger_list *passengers_to_enter; // the passengers that pressed the button and are waiting for enter the elevator
+} elevators;
+
 // TO DO (fix: insert when we have 2 equal floors {maybe will be necessary make a new function to search})
 // TO DO (feat: do something to make the elevator decide when it will be in ascending or descending order )
 void insert_floor_list(elevators *elevator, int floor) {
-    // this function inserts in ascending order
-    if (elevator->route == NULL) {
+    // this function inserts in ascending order or in descending order, depending on elevator direction
+    if ((elevator->actual_route) == NULL || *(elevator->actual_route) == NULL) {
         // if the list is empty
         floor_list *aux = malloc(sizeof(floor_list));
         aux->floor = floor;
         aux->prev = NULL;
         aux->next = NULL;
-        elevator->route = aux;
+        if (elevator->direction == 1) {
+            elevator->up_route = aux;
+            elevator->actual_route = &(elevator->up_route);
+        } else {
+            elevator->down_route = aux;
+            elevator->actual_route = &(elevator->down_route);
+        }
     } else {
         // if the list already has something
         floor_list *aux1 = malloc(sizeof(floor_list));
 
-        floor_list *aux2 = elevator->route;
-        while (floor > aux2->floor && aux2->next != NULL) {
-            aux2 = aux2->next;
-        }
+        if (elevator->direction == 1) {
+            floor_list *aux2 = elevator->up_route;
+            while (floor > aux2->floor && aux2->next != NULL) {
+                aux2 = aux2->next;
+            }
 
-        if (aux2 == elevator->route && floor < aux2->floor) {
-            // it's at the beginning
-            aux1->floor = floor;
-            aux1->prev = NULL;
-            aux1->next = elevator->route;
-            elevator->route = aux1;
-            aux2->prev = aux1;
-        } else if (aux2->next == NULL && floor > aux2->floor) {
-            // it's at the ending
-            aux1->floor = floor;
-            aux1->prev = aux2;
-            aux1->next = NULL;
-            aux2->next = aux1;
+            if (aux2 == elevator->up_route && floor < aux2->floor) {
+                // it's at the beginning
+                aux1->floor = floor;
+                aux1->prev = NULL;
+                aux1->next = elevator->up_route;
+                elevator->up_route = aux1;
+                aux2->prev = aux1;
+            } else if (aux2->next == NULL && floor > aux2->floor) {
+                // it's at the ending
+                aux1->floor = floor;
+                aux1->prev = aux2;
+                aux1->next = NULL;
+                aux2->next = aux1;
+            } else {
+                // it's at the middle
+                aux2 = aux2->prev;
+                aux1->floor = floor;
+                aux1->prev = aux2;
+                aux1->next = aux2->next;
+                aux2->next = aux1;
+                (aux1->next)->prev = aux1;
+            }
         } else {
-            // it's at the middle
-            aux2 = aux2->prev;
-            aux1->floor = floor;
-            aux1->prev = aux2;
-            aux1->next = aux2->next;
-            aux2->next = aux1;
-            (aux1->next)->prev = aux1;
+            floor_list *aux2 = elevator->down_route;
+            while (floor < aux2->floor && aux2->next != NULL) {
+                aux2 = aux2->next;
+            }
+
+            if (aux2 == elevator->down_route && floor > aux2->floor) {
+                // it's at the beginning
+                aux1->floor = floor;
+                aux1->prev = NULL;
+                aux1->next = elevator->down_route;
+                elevator->down_route = aux1;
+                aux2->prev = aux1;
+            } else if (aux2->next == NULL && floor < aux2->floor) {
+                // it's at the ending
+                aux1->floor = floor;
+                aux1->prev = aux2;
+                aux1->next = NULL;
+                aux2->next = aux1;
+            } else {
+                // it's at the middle
+                aux2 = aux2->prev;
+                aux1->floor = floor;
+                aux1->prev = aux2;
+                aux1->next = aux2->next;
+                aux2->next = aux1;
+                (aux1->next)->prev = aux1;
+            }
         }
     }
 }
 
 int remove_floor_list(elevators *elevator) {
     // this function removes from beginning
-    if (elevator->route == NULL) {
-        return 0; // elevator route is empty
+    if (*(elevator->actual_route) == NULL) {
+        return 0; // elevator actual_route is empty
     }
-    floor_list *aux = elevator->route;
-    elevator->route = (elevator->route)->next;
-    if (elevator->route != NULL) {
-        (elevator->route)->prev = NULL;
+    floor_list *aux = *(elevator->actual_route);
+    *(elevator->actual_route) = (*(elevator->actual_route))->next;
+    if (*(elevator->actual_route) != NULL) {
+        (*(elevator->actual_route))->prev = NULL;
     }
     free(aux);
     return 1;
@@ -99,19 +136,20 @@ int remove_passenger_list(elevators *elevator) {
     return 0;
 }
 
-int print_elevator_route(elevators elevator) {
-    if (elevator.route == NULL) {
-        return 0; // route is empty
+int print_elevator_route(elevators *elevator) {
+    if (*(elevator->actual_route) == NULL) {
+        return 0; // up_route or down_route is empty
     }
+    floor_list *aux = *elevator->actual_route;
     printf("[");
-    while (elevator.route != NULL) {
-        if ((elevator.route)->floor != 1) {
-            printf(" %d", (elevator.route)->floor);
+    while (aux != NULL) {
+        if (aux->floor != 1) {
+            printf(" %d", aux->floor);
         } else {
             printf(" T");
         }
-        elevator.route = (elevator.route)->next;
-        if (elevator.route != NULL) {
+        aux = aux->next;
+        if (aux != NULL) {
             printf(" ->");
         }
     }
@@ -120,19 +158,19 @@ int print_elevator_route(elevators elevator) {
 }
 
 // TO DO
-int print_elevator_passengers(elevators elevator) {
+int print_elevator_passengers(elevators *elevator) {
     return 0;
 }
 
 // TO DO (put printf to elevator_passengers)
-void print_elevator(elevators elevator) {
-    printf("name: %s\n", elevator.name);
-    if (elevator.actual_floor != 1) {
-        printf("actual floor: %d\n", elevator.actual_floor);
+void print_elevator(elevators *elevator) {
+    printf("name: %s\n", elevator->name);
+    if (elevator->actual_floor != 1) {
+        printf("actual floor: %d\n", elevator->actual_floor);
     } else {
         printf("actual floor: T\n");
     }
-    if (elevator.direction == 1) {
+    if (elevator->direction == 1) {
         printf("direction: S\n"); // S = "Subindo" = means "going up" in portuguese
     } else {
         printf("direction: D\n"); // D = "Descendo" = means "going down" in portuguese
@@ -146,7 +184,7 @@ int main(void) {
 
 
     // creating elevator(s)
-    elevators elevator1 = {"E1", 4, 1, NULL, NULL};
+    elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL, NULL, NULL};
 
 
     // creating passenger(s)
@@ -160,17 +198,24 @@ int main(void) {
     insert_floor_list(&elevator1, 3);
     insert_floor_list(&elevator1, 4);
     // insert_floor_list(&elevator1, 8);
-    print_elevator_route(elevator1);
+    print_elevator_route(&elevator1);
 
     remove_floor_list(&elevator1);
-    print_elevator_route(elevator1);
+    print_elevator_route(&elevator1);
     remove_floor_list(&elevator1);
     remove_floor_list(&elevator1);
     remove_floor_list(&elevator1);
     remove_floor_list(&elevator1);
-    print_elevator_route(elevator1);
+    print_elevator_route(&elevator1);
     remove_floor_list(&elevator1);
-    print_elevator_route(elevator1);
+    print_elevator_route(&elevator1);
+    remove_floor_list(&elevator1);
+    insert_floor_list(&elevator1, 8);
+    insert_floor_list(&elevator1, 2);
+    insert_floor_list(&elevator1, 3);
+    insert_floor_list(&elevator1, 3);
+    insert_floor_list(&elevator1, 4);
+    print_elevator_route(&elevator1);
 
 
     // closing application
