@@ -25,17 +25,35 @@ typedef struct elevators {
     char name[2]; // For example: E1, E4, E6
     int actual_floor;
     int direction; // 1 = up, -1 = down
-    struct doubly_linked_floor_list **actual_route; // point to the actual route, up_route or down_route
+    struct doubly_linked_floor_list **actual_route; // point to the actual route, that can be up_route or down_route
     struct doubly_linked_floor_list *up_route; // the route the elevator must follow if it's going up
     struct doubly_linked_floor_list *down_route; // the route the elevator must follow if it's going down
     struct doubly_linked_passenger_list *passengers_inside; // the passengers who are inside the elevator
     struct doubly_linked_passenger_list *passengers_to_enter; // the passengers that pressed the button and are waiting for enter the elevator
 } elevators;
 
-// TO DO (fix: insert when we have 2 equal floors {maybe will be necessary make a new function to search})
-// TO DO (feat: do something to make the elevator decide when it will be in ascending or descending order )
-void insert_floor_list(elevators *elevator, int floor) {
-    // this function inserts in ascending order or in descending order, depending on elevator direction
+int search_floor_list(floor_list *list, int floor) {
+    floor_list *aux = list;
+    if (list != NULL) {
+        while (aux != NULL) {
+            if (aux->floor == floor) {
+                return 1; // the floor already is in the list
+            }
+            aux = aux->next;
+        }
+    }
+    return 0; // the floor is not in the list yet
+}
+
+int insert_floor_list(elevators *elevator, int floor) {
+    // this function inserts the floor value in ascending order or in descending order, depending on elevator direction
+
+    // verifying if the value to be added already is in the list (using && to short-circuit)
+    if (!((elevator->actual_route) == NULL || *(elevator->actual_route) == NULL) && search_floor_list(*(elevator->actual_route), floor) == 1) {
+        return 0; // the floor value was NOT added to the list because it already was in there
+    }
+
+    // adding the floor to the list
     if ((elevator->actual_route) == NULL || *(elevator->actual_route) == NULL) {
         // if the list is empty
         floor_list *aux = malloc(sizeof(floor_list));
@@ -53,7 +71,9 @@ void insert_floor_list(elevators *elevator, int floor) {
         // if the list already has something
         floor_list *aux1 = malloc(sizeof(floor_list));
 
+        // ascending order
         if (elevator->direction == 1) {
+            // moving pointer to the immediately next value that is bigger than floor value
             floor_list *aux2 = elevator->up_route;
             while (floor > aux2->floor && aux2->next != NULL) {
                 aux2 = aux2->next;
@@ -82,6 +102,9 @@ void insert_floor_list(elevators *elevator, int floor) {
                 (aux1->next)->prev = aux1;
             }
         } else {
+            // descending order
+
+            // moving pointer to the last value that is bigger than floor value
             floor_list *aux2 = elevator->down_route;
             while (floor < aux2->floor && aux2->next != NULL) {
                 aux2 = aux2->next;
@@ -111,10 +134,11 @@ void insert_floor_list(elevators *elevator, int floor) {
             }
         }
     }
+    return 1; // the floor value was added to the list
 }
 
 int remove_floor_list(elevators *elevator) {
-    // this function removes from beginning
+    // this function removes floor value from beginning
     if (*(elevator->actual_route) == NULL) {
         return 0; // elevator actual_route is empty
     }
@@ -138,6 +162,7 @@ int remove_passenger_list(elevators *elevator) {
 
 int print_elevator_route(elevators *elevator) {
     if (*(elevator->actual_route) == NULL) {
+        printf("[  ]\n");
         return 0; // up_route or down_route is empty
     }
     floor_list *aux = *elevator->actual_route;
@@ -162,7 +187,7 @@ int print_elevator_passengers(elevators *elevator) {
     return 0;
 }
 
-// TO DO (put printf to elevator_passengers)
+// TO DO (put printf to elevator_passengers to work)
 void print_elevator(elevators *elevator) {
     printf("name: %s\n", elevator->name);
     if (elevator->actual_floor != 1) {
@@ -209,12 +234,14 @@ int main(void) {
     print_elevator_route(&elevator1);
     remove_floor_list(&elevator1);
     print_elevator_route(&elevator1);
-    remove_floor_list(&elevator1);
+
+    insert_floor_list(&elevator1, 1);
+    insert_floor_list(&elevator1, 9);
     insert_floor_list(&elevator1, 8);
-    insert_floor_list(&elevator1, 2);
-    insert_floor_list(&elevator1, 3);
+    insert_floor_list(&elevator1, 11);
     insert_floor_list(&elevator1, 3);
     insert_floor_list(&elevator1, 4);
+    insert_floor_list(&elevator1, 8);
     print_elevator_route(&elevator1);
 
 
