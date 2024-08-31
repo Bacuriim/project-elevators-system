@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <Windows.h>
-#include <unistd.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 
 typedef struct passengers {
     char name[4]; // for example: P01, P06, P21. Including `\0`
