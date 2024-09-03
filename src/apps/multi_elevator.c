@@ -4,7 +4,9 @@
 #ifdef _WIN32
 #include <Windows.h>
 #else
+
 #include <unistd.h>
+
 #endif
 
 typedef struct passengers {
@@ -41,13 +43,13 @@ typedef struct elevators {
 
 void put_to_sleep(int seconds) {
     // this function stops the program flow for a while, both mac and windows
-    #ifdef _WIN32
-        Sleep(seconds * 1000); // Sleep to Windows
+#ifdef _WIN32
+    Sleep(seconds * 1000); // Sleep to Windows
 
-    #else
+#else
         sleep(seconds); // sleep to UNIX/Linux
 
-    #endif
+#endif
 }
 
 int is_floor_in_list(floor_list *list, int floor) {
@@ -293,6 +295,67 @@ int remove_passenger_to_enter_list(elevators *elevator) {
     return 1; // the passenger who gets off on this floor has been removed
 }
 
+// DOING
+void go_down(elevators *elevator) {
+    // this function makes elevator go down one floor
+    put_to_sleep(1); // the descent time
+    --(elevator->actual_floor);
+}
+
+// DOING
+void go_up(elevators *elevator) {
+    // this function makes elevator go up one floor
+    put_to_sleep(1); // the rise time
+    ++(elevator->actual_floor);
+}
+
+// DOING
+int invert_elevator_direction(elevators *elevator) {
+    // this function reverses the direction of the elevator
+    if (elevator->direction == 1 && (*(elevator->actual_route)) == NULL) {
+        elevator->actual_route = &(elevator->down_route);
+        elevator->direction = -1;
+        return 1; // the direction was reversed
+    }
+    if (elevator->direction == -1 && (*(elevator->actual_route)) == NULL) {
+        elevator->actual_route = &(elevator->up_route);
+        elevator->direction = 1;
+        return 1; // the direction was reversed
+    }
+    return 0; // the direction was NOT reversed
+}
+
+// DOING
+int get_new_elevator_direction(elevators *elevator) {
+    // this function returns the new elevator direction
+    return (*(elevator->actual_route))->floor - elevator->actual_floor > 0 ? 1 : -1; // will go up = 1; will go down = -1
+}
+
+// DOING
+void move_elevator(elevators *elevator) {
+    // this function makes an elevator work
+    int elevator_time = 0;
+    while ((*(elevator->actual_route)) != NULL) {
+        if(get_new_elevator_direction(elevator) == elevator->direction) {
+
+
+        } else {
+
+
+        }
+        ++elevator_time;
+        printf("elapsed time: %d second(s)\n", elevator_time);
+    }
+    printf("time spent: %d second(s)\n", elevator_time);
+}
+
+// TO DO
+int move_elevators() {
+    // this function makes the program work
+
+    return 1; // all elevators have been moved
+}
+
 int print_elevator_route(elevators *elevator) {
     // this function prints the elevator route
     if (*(elevator->actual_route) == NULL) {
@@ -337,7 +400,7 @@ int print_elevator_passengers_inside(elevators *elevator) {
 
 int print_elevator_passengers_to_enter(elevators *elevator) {
     // this function prints the names of passengers to enter the elevator
-    if (elevator->passengers_to_enter == NULL ) {
+    if (elevator->passengers_to_enter == NULL) {
         printf("passengers to enter: [  ]\n");
         return 0; // the elevator is empty
     }
@@ -388,25 +451,34 @@ int free_all() {
 }
 
 int main(void) {
-    // manipulating script.txt
+    // manipulating script.txt and creating main variables
+    int const maximum_floor = 25;
 
 
     // creating elevator(s)
     elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL, NULL, NULL};
+    elevators elevator2 = {"E2", 11, -1, NULL, NULL, NULL, NULL, NULL};
+    elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL, NULL, NULL};
 
 
     // creating passenger(s)
-    passengers passenger1 = {"P01", 5, 6, 1, 5};
-    passengers passenger2 = {"P02", 6, 7, 1, 15};
-    passengers passenger3 = {"P03", 9, 12, -1, 25};
+    passengers passenger1 = {"P01", 4, 6, 1, 5};
+    passengers passenger2 = {"P01", 6, 4, -1, 8};
+    passengers passenger3 = {"P02", 5, 10, 1, 9};
+    passengers passenger4 = {"P03", 3, 9, 1, 10};
+    passengers passenger5 = {"P04", 6, 1, -1, 10};
+    passengers passenger6 = {"P05", 8, 15, 1, 10};
+    passengers passenger7 = {"P06", 9, 2, -1, 15};
+    passengers passenger8 = {"P07", 2, 13, 1, 15};
+    passengers passenger9 = {"P08", 8, 1, -1, 18};
+    passengers passenger10 = {"P01", 16, 3, -1, 21};
+    passengers passenger11 = {"P10", 1, 13, 1, 21};
+    passengers passenger12 = {"P11", 1, 12, 1, 21};
+    passengers passenger13 = {"P12", 1, 15, 1, 23};
+    passengers passenger14 = {"P13", 2, 13, 1, 28};
+
 
     // testing some functions
-    int i = 1;
-    while(i != 11) {
-        put_to_sleep(1);
-        printf("%d\n", i);
-        ++i;
-    }
 
 
     // closing application
