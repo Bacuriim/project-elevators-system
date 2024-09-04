@@ -9,6 +9,10 @@
 
 #endif
 
+// global variables
+int elevator_time = 0;
+
+// structs
 typedef struct passengers {
     char name[4]; // for example: P01, P06, P21. Including `\0`
     int initial_floor;
@@ -41,13 +45,14 @@ typedef struct elevators {
     // the passengers that pressed the button and are waiting for enter the elevator
 } elevators;
 
+//functions
 void put_to_sleep(int seconds) {
     // this function stops the program flow for a while, both mac and windows
 #ifdef _WIN32
     Sleep(seconds * 1000); // Sleep to Windows
 
 #else
-        sleep(seconds); // sleep to UNIX/Linux
+    sleep(seconds); // sleep to UNIX/Linux
 
 #endif
 }
@@ -88,6 +93,16 @@ passenger_list *search_passenger_to_enter_list(elevators *elevator) {
     // if there's a passenger to gets on at the elevator, it returns a pointer to this passenger, otherwise returns NULL
 }
 
+// DOING
+passenger_list *search_passengers(passenger_list *passengers, int elevator_time) {
+    // this function searches a passenger that is at the script
+    passenger_list *aux = passengers;
+    while (aux != NULL && elevator_time != (aux->passenger).call_cooldown) {
+        aux = aux->next;
+    }
+    return aux; // if there's a passenger to be initialized, it returns a pointer to this passenger, otherwise returns NULL
+}
+
 int insert_floor_list(elevators *elevator, int floor) {
     // this function inserts the floor value in ascending order or in descending order, depending on elevator direction
 
@@ -116,7 +131,7 @@ int insert_floor_list(elevators *elevator, int floor) {
         floor_list *aux1 = malloc(sizeof(floor_list));
 
         // ascending order
-        if (elevator->direction == 1) {
+        if (elevator->direction == 1 && elevator->actual_floor < floor) {
             // moving pointer to the immediately next value that is bigger than floor value
             floor_list *aux2 = elevator->up_route;
             while (floor > aux2->floor && aux2->next != NULL) {
@@ -145,7 +160,7 @@ int insert_floor_list(elevators *elevator, int floor) {
                 aux2->next = aux1;
                 (aux1->next)->prev = aux1;
             }
-        } else {
+        } else if (elevator->direction == -1 && elevator->actual_floor > floor) {
             // descending order
 
             // moving pointer to the last value that is bigger than floor value
@@ -176,6 +191,9 @@ int insert_floor_list(elevators *elevator, int floor) {
                 aux2->next = aux1;
                 (aux1->next)->prev = aux1;
             }
+        } else {
+            free(aux1);
+            return 0; // the floor was NOT added
         }
     }
     return 1; // the floor value was added to the list
@@ -296,6 +314,75 @@ int remove_passenger_to_enter_list(elevators *elevator) {
 }
 
 // DOING
+int remove_passenger_in_script(passenger_list **passengersP, passengers passenger) {
+    // this function removes a passenger from passengers script list when elevator_time == call_cooldown
+    passenger_list *aux = search_passengers(*passengersP, elevator_time);
+
+    if(*passengersP == NULL || aux == NULL) {
+        return 0; // n removeu
+    }
+
+    if (aux == *passengersP) {
+        // it's at the beginning
+        *passengersP = (*passengersP)->next;
+
+        if(*passengersP != NULL) {
+            (*passengersP)->prev = NULL;
+        }
+        free(aux);
+    } else if (aux->next == NULL) {
+        // it's at the end
+        (aux->prev)->next = NULL;
+        free(aux);
+    } else {
+        // it's at the middle
+        (aux->prev)->next = aux->next;
+        (aux->next)->prev = aux->prev;
+        free(aux);
+    }
+}
+
+// DOING
+void insert_passenger_in_to_enter_list(elevators *elevator, passenger_list **passengers, int elevator_time) {
+    // this function inserts all passengers with same time of elevator_time to elevator system
+    while (search_passengers(*passengers, elevator_time) != NULL) {
+        insert_passenger_to_enter_list(elevator, (search_passengers(*passengers, elevator_time))->passenger);
+        remove_passenger_in_script(passengers, (search_passengers(*passengers, elevator_time))->passenger);
+    }
+}
+
+// DOING
+void insert_passenger_list(passenger_list **list, passengers passenger)
+{
+    // inserindo do final
+    if (*list == NULL)
+    {
+        // Se nao houver nenhum no:
+        passenger_list *aux = malloc(sizeof(passenger_list));
+        aux->passenger = passenger;
+        aux->prev = NULL;
+        aux->next = NULL;
+        *list = aux;
+    }
+    else
+    {
+        // Se ja houver algum no:
+        passenger_list *aux1 = malloc(sizeof(passenger_list));
+        aux1->passenger = passenger;
+        aux1->next = NULL;
+
+        // aux2 percorre a lista ate o ultimo dado:
+        passenger_list *aux2 = *list;
+        while (aux2->next != NULL)
+        {
+            aux2 = aux2->next;
+        }
+        aux2->next = aux1;
+        aux1->prev = aux2;
+    }
+}
+
+// DOING
 void go_down(elevators *elevator) {
     // this function makes elevator go down one floor
     put_to_sleep(1); // the descent time
@@ -312,14 +399,21 @@ void go_up(elevators *elevator) {
 // DOING
 int invert_elevator_direction(elevators *elevator) {
     // this function reverses the direction of the elevator
-    if (elevator->direction == 1 && (*(elevator->actual_route)) == NULL) {
-        elevator->actual_route = &(elevator->down_route);
-        elevator->direction = -1;
-        return 1; // the direction was reversed
-    }
-    if (elevator->direction == -1 && (*(elevator->actual_route)) == NULL) {
-        elevator->actual_route = &(elevator->up_route);
-        elevator->direction = 1;
+//    if (elevator->direction == 1 && (*(elevator->actual_route)) == NULL) {
+//        elevator->actual_route = &(elevator->down_route);
+//        elevator->direction = -1;
+//        return 1; // the direction was reversed
+//    }
+//    if (elevator->direction == -1 && (*(elevator->actual_route)) == NULL) {
+//        elevator->actual_route = &(elevator->up_route);
+//        elevator->direction = 1;
+//        return 1; // the direction was reversed
+//    }
+//    return 0; // the direction was NOT reversed
+
+    if ((*(elevator->actual_route)) == NULL) {
+        elevator->actual_route = elevator->direction == 1 ? &(elevator->down_route) : &(elevator->up_route);
+        elevator->direction = elevator->actual_route == &(elevator->down_route) ? 1 : -1;
         return 1; // the direction was reversed
     }
     return 0; // the direction was NOT reversed
@@ -328,33 +422,49 @@ int invert_elevator_direction(elevators *elevator) {
 // DOING
 int get_new_elevator_direction(elevators *elevator) {
     // this function returns the new elevator direction
-    return (*(elevator->actual_route))->floor - elevator->actual_floor > 0 ? 1 : -1; // will go up = 1; will go down = -1
+    return (*(elevator->actual_route))->floor - elevator->actual_floor > 0 ? 1
+                                                                           : -1; // will go up = 1; will go down = -1
 }
 
 // DOING
-void move_elevator(elevators *elevator) {
+void move_elevator(elevators *elevator, passenger_list *passengers) {
     // this function makes an elevator work
-    int elevator_time = 0;
-    while ((*(elevator->actual_route)) != NULL) {
-        if(get_new_elevator_direction(elevator) == elevator->direction) {
-
-
-        } else {
+    while ((*(elevator->actual_route)) != NULL || passengers != NULL) {
+        if (get_new_elevator_direction(elevator) == elevator->direction) {
+            // caso do andar atual 4 para 6,8,9
+            if ((*(elevator->actual_route))->floor == elevator->actual_floor) {
+                // buscar no to enter
+                // inserir na passenger in
+                // inserir na rota
+                // remover passageiro de passenger to enter
+                // remover na rota
+                // remover no passengers
+            }
+            if (elevator->direction == 1) {
+                go_up(elevator);
+            } else {
+                go_down(elevator);
+            }
+        }
+        while (search_passengers(passengers, elevator_time) != NULL) {
+            // adicionar no to_enter e remove de passengers list
+            passenger_list *aux = search_passengers(passengers, elevator_time);
 
 
         }
-        ++elevator_time;
-        printf("elapsed time: %d second(s)\n", elevator_time);
+        invert_elevator_direction(elevator);
     }
-    printf("time spent: %d second(s)\n", elevator_time);
 }
 
 // TO DO
-int move_elevators() {
-    // this function makes the program work
-
-    return 1; // all elevators have been moved
-}
+//int move_elevators(elevator_list *elevators) {
+//    // this function makes the program work
+//
+//
+//    ++elevator_time;
+//    printf("elapsed time: %d\n", elevator_time);
+//    return 1; // all elevators have been moved
+//}
 
 int print_elevator_route(elevators *elevator) {
     // this function prints the elevator route
@@ -417,7 +527,7 @@ int print_elevator_passengers_to_enter(elevators *elevator) {
     return 1; // the list has been printed
 }
 
-void print_elevator(elevators *elevator) {
+void print_elevator_state(elevators *elevator) {
     // this function prints all elevator informations
     printf("name: %s\n", elevator->name);
     if (elevator->actual_floor != 1) {
@@ -461,6 +571,8 @@ int main(void) {
     elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL, NULL, NULL};
 
 
+
+
     // creating passenger(s)
     passengers passenger1 = {"P01", 4, 6, 1, 5};
     passengers passenger2 = {"P01", 6, 4, -1, 8};
@@ -476,6 +588,38 @@ int main(void) {
     passengers passenger12 = {"P11", 1, 12, 1, 21};
     passengers passenger13 = {"P12", 1, 15, 1, 23};
     passengers passenger14 = {"P13", 2, 13, 1, 28};
+    passenger_list *passengers = NULL;
+    insert_passenger_list(&passengers, passenger3);
+    insert_passenger_list(&passengers, passenger2);
+    insert_passenger_list(&passengers, passenger1);
+
+
+
+
+    passenger_list *aux = passengers;
+    while (aux != NULL) {
+        printf("%s\n", aux->passenger.name);
+        aux = aux->next;
+    }
+    elevator_time = 9;
+    printf("////////////////////\n");
+
+
+
+
+    // remove_passenger_in_script(&passengers, (search_passengers(passengers, elevator_time)->passenger));
+    insert_passenger_in_to_enter_list(&elevator1, &passengers, elevator_time);
+
+//    while (search_passengers(passengers, elevator_time) != NULL) {
+//        insert_passenger_to_enter_list(&elevator1, (search_passengers(passengers, elevator_time))->passenger);
+//        remove_passenger_in_script(&passengers, (search_passengers(passengers, elevator_time))->passenger);
+//    }
+
+    aux = passengers;
+    while (aux != NULL) {
+        printf("%s\n", aux->passenger.name);
+        aux = aux->next;
+    }
 
 
     // testing some functions
