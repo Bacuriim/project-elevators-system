@@ -625,9 +625,9 @@ int main(void) {
 
 
     // creating elevator(s)
-    elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL, NULL, NULL};
-    elevators elevator2 = {"E2", 11, -1, NULL, NULL, NULL, NULL, NULL};
-    elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL, NULL, NULL};
+    elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL};
+    elevators elevator2 = {"E2", 11, -1, NULL, NULL, NULL};
+    elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL};
     elevator_list *elevators = NULL;
     insert_elevator_list(&elevators, elevator1);
 //    insert_elevator_list(&elevators, elevator2);
