@@ -7,4 +7,5 @@ add_executable(project_elevator_single src/apps/single_elevator.c
 )
 
 add_executable(project_elevator_multi src/apps/multi_elevator.c
+        src/apps/multi_elevator.c
 )
