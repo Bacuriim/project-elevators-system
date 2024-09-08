@@ -677,8 +677,7 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
 
                 // ARRUMAR AQUI
                 // pesquisando na lista de passageiros do script
-                while (search_passengers(*passengers, elevator_time) != NULL && (
-                           aux == search_elevator(*elevators) || search_elevator(*elevators) == NULL)) {
+                while (search_passengers(*passengers, elevator_time) != NULL && aux == search_elevator(*elevators)) {
                     // adicionar no to_enter e remove de passengers list
                     insert_passenger_in_to_enter_list(&(aux->elevator), passengers, elevator_time);
                 }
@@ -690,19 +689,6 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
                     go_up(&(aux->elevator));
                 } else {
                     go_down(&(aux->elevator));
-                }
-
-                // se o elevador tiver que ficar vazio e parado por um tempo até alguém apertar o botao
-                if (aux->elevator.route == NULL && *passengers != NULL) {
-                    print_elevator_state(&(aux->elevator));
-                    printf("\n");
-                    while (search_passengers(*passengers, elevator_time) != NULL && (
-                               aux == search_elevator(*elevators) || search_elevator(*elevators) == NULL)) {
-                        // && VERIFICAR SE O PASSAGEIRO ESTÁ MAIS PRÓXIMO DESSE ELEVADOR
-                        // adicionar no to_enter e remove de passengers list
-                        insert_passenger_in_to_enter_list(&(aux->elevator), passengers, elevator_time);
-                    }
-                    invert_elevator_direction(&(aux->elevator));
                 }
                 aux = aux->next;
             }
@@ -755,11 +741,11 @@ int main(void) {
     insert_floor_list(&(elevators->next->elevator), 2);
     insert_floor_list(&(elevators->next->elevator), 1);
 
-    insert_elevator_list(&elevators, elevator3);
-    insert_floor_list(&(elevators->next->next->elevator), 5);
-    insert_floor_list(&(elevators->next->next->elevator), 8);
-    insert_floor_list(&(elevators->next->next->elevator), 1);
-    insert_floor_list(&(elevators->next->next->elevator), 9);
+//    insert_elevator_list(&elevators, elevator3);
+//    insert_floor_list(&(elevators->next->next->elevator), 5);
+//    insert_floor_list(&(elevators->next->next->elevator), 8);
+//    insert_floor_list(&(elevators->next->next->elevator), 1);
+//    insert_floor_list(&(elevators->next->next->elevator), 9);
 
 
     // creating passenger(s)
