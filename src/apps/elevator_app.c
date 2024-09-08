@@ -131,11 +131,15 @@ int floor_counter(elevators elevator) {
     // this function counts how many floors there are on the route
     elevators aux = elevator;
     int floors = 0;
-    while (aux.route != NULL && aux.route->next != NULL) {
-        ++floors;
-        aux.route = aux.route->next;
+    if (aux.route == NULL) {
+        return 0;
+    } else {
+        while (aux.route->next != NULL) {
+            ++floors;
+            aux.route = aux.route->next;
+        }
+        return floors;
     }
-    return floors + 1;
 }
 
 elevator_list *search_elevator(elevator_list *elevators) {
@@ -522,13 +526,11 @@ void print_all_elevators() {
 
 void go_down(elevators *elevator) {
     // this function makes elevator go down one floor
-    // put_to_sleep(1); // the descent time
     --(elevator->actual_floor);
 }
 
 void go_up(elevators *elevator) {
     // this function makes elevator go up one floor
-    // put_to_sleep(1); // the rise time
     ++(elevator->actual_floor);
 }
 
@@ -599,8 +601,10 @@ void move_elevator(elevator_list **elevator, passenger_list **passengers) {
         // movendo o elevador
         if ((&((*elevator)->elevator))->direction == 1) {
             go_up(&((*elevator)->elevator));
+            put_to_sleep(1); // the rise time
         } else {
             go_down(&((*elevator)->elevator));
+            put_to_sleep(1); // the rise time
         }
 
         ++elevator_time;
@@ -703,6 +707,7 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
                 aux = aux->next;
             }
         }
+//        put_to_sleep(1); // time to sleep
         ++elevator_time;
         aux = *elevators;
         printf("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n\n");
