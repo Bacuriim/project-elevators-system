@@ -256,56 +256,70 @@ int get_proximity(int floor1, int floor2) {
 
 // DOING
 int insert_floor_list_v2(elevators *elevator, int floor) {
-    // this function inserts the floor value in order of proximity to the current elevator floor.
-
-    // verifying if the value to be added already is in the list (using && to short-circuit)
-    if ((elevator->route) != NULL && is_floor_in_list(elevator->route, floor) == 1) {
-        return 0; // the floor value has NOT added to the list because it already was in there
+    // this function inserts the floor value in proximity order
+    // check if the floor is already in the list
+    if (elevator->route != NULL && is_floor_in_list(elevator->route, floor) == 1) {
+        return 0; // the floor was not added because it is already in the list
     }
 
-    // adding the floor to the list
-    if (elevator->route == NULL) {
-        // if the list is empty
-        floor_list *aux = malloc(sizeof(floor_list));
-        aux->floor = floor;
-        aux->prev = NULL;
-        aux->next = NULL;
-        elevator->route = aux;
-    } else {
-        // if the list already has some floor
+    // create a new floor
+    floor_list *aux1 = malloc(sizeof(floor_list));
+    if (aux1 == NULL) {
+        return -1; // return error code if memory allocation fails
+    }
+    aux1->floor = floor;
 
-        // moving pointer to the immediately next value that is bigger than floor value
+    // if the list is empty
+    if (elevator->route == NULL) {
+        aux1->prev = NULL;
+        aux1->next = NULL;
+        elevator->route = aux1;
+    } else {
+        // add the new floor temporarily at the end of the list
         floor_list *aux2 = elevator->route;
-        while (get_proximity(elevator->actual_floor, floor) > get_proximity(elevator->actual_floor, aux2->floor) && aux2->next != NULL) {
+        while (aux2->next != NULL) {
             aux2 = aux2->next;
         }
-
-        floor_list *aux1 = malloc(sizeof(floor_list));
-
-        if (aux2 == elevator->route && get_proximity(elevator->actual_floor, floor) < get_proximity(elevator->actual_floor, aux2->floor)) {
-            // it's at the beginning
-            aux1->floor = floor;
-            aux1->prev = NULL;
-            aux1->next = elevator->route;
-            elevator->route = aux1;
-            aux2->prev = aux1;
-        } else if (aux2->next == NULL && get_proximity(elevator->actual_floor, floor) > get_proximity(elevator->actual_floor, aux2->floor)) {
-            // it's at the ending
-            aux1->floor = floor;
-            aux1->prev = aux2;
-            aux1->next = NULL;
-            aux2->next = aux1;
-        } else {
-            // it's at the middle
-            aux2 = aux2->prev;
-            aux1->floor = floor;
-            aux1->prev = aux2;
-            aux1->next = aux2->next;
-            aux2->next = aux1;
-            (aux1->next)->prev = aux1;
-        }
+        aux2->next = aux1;
+        aux1->prev = aux2;
+        aux1->next = NULL;
     }
-    return 1; // the floor value was added to the list
+
+    // reorder the list based on proximity to the current elevator floor
+    floor_list *sorted_list = NULL; // new sorted list
+    floor_list *aux2 = elevator->route;
+    while (aux2 != NULL) {
+        floor_list *next = aux2->next; // save the next floor
+
+        // insert the floor into the new sorted list
+        if (sorted_list == NULL || get_proximity(elevator->actual_floor, aux2->floor) < get_proximity(elevator->actual_floor, sorted_list->floor)) {
+            // insert at the beginning
+            aux2->next = sorted_list;
+            aux2->prev = NULL;
+            if (sorted_list != NULL) {
+                sorted_list->prev = aux2;
+            }
+            sorted_list = aux2;
+        } else {
+            // insert in the middle or at the end
+            floor_list *sorted_current = sorted_list;
+            while (sorted_current->next != NULL && get_proximity(elevator->actual_floor, aux2->floor) >= get_proximity(elevator->actual_floor, sorted_current->next->floor)) {
+                sorted_current = sorted_current->next;
+            }
+            aux2->next = sorted_current->next;
+            aux2->prev = sorted_current;
+            if (sorted_current->next != NULL) {
+                sorted_current->next->prev = aux2;
+            }
+            sorted_current->next = aux2;
+        }
+        aux2 = next; // move to the next floor
+    }
+
+    // update the route list
+    elevator->route = sorted_list; // set the sorted list as the new route
+
+    return 1; // the floor was added and the list was reordered
 }
 
 int remove_floor_list(elevators *elevator) {
@@ -628,6 +642,7 @@ int invert_elevator_direction(elevators *elevator) {
     return 0; // the direction has not been reversed
 }
 
+// DOING
 void move_elevator(elevator_list **elevator, passenger_list **passengers) {
     // this function makes just one elevator work
     while ((*elevator)->elevator.route != NULL || *passengers != NULL) {
@@ -709,6 +724,7 @@ void move_elevator(elevator_list **elevator, passenger_list **passengers) {
     printf("ELAPSED TIME: %d\n", elevator_time - 1);
 }
 
+// DOING
 void move_elevators(elevator_list **elevators, passenger_list **passengers) {
     // this function makes multiples elevators work
     elevator_list *aux = *elevators;
@@ -851,19 +867,19 @@ int main(void) {
     insert_floor_list_v2(&(elevators->elevator), 9);
     insert_floor_list_v2(&(elevators->elevator), 8);
 
-//    insert_elevator_list(&elevators, elevator2);
-//    insert_floor_list_v2(&(elevators->next->elevator), 5);
-//    insert_floor_list_v2(&(elevators->next->elevator), 8);
-//    insert_floor_list_v2(&(elevators->next->elevator), 9);
-//    insert_floor_list_v2(&(elevators->next->elevator), 3);
-//    insert_floor_list_v2(&(elevators->next->elevator), 2);
-//    insert_floor_list_v2(&(elevators->next->elevator), 1);
+    insert_elevator_list(&elevators, elevator2);
+    insert_floor_list_v2(&(elevators->next->elevator), 5);
+    insert_floor_list_v2(&(elevators->next->elevator), 8);
+    insert_floor_list_v2(&(elevators->next->elevator), 9);
+    insert_floor_list_v2(&(elevators->next->elevator), 3);
+    insert_floor_list_v2(&(elevators->next->elevator), 2);
+    insert_floor_list_v2(&(elevators->next->elevator), 1);
 
-//    insert_elevator_list(&elevators, elevator3);
-//    insert_floor_list_v2(&(elevators->next->next->elevator), 5);
-//    insert_floor_list_v2(&(elevators->next->next->elevator), 8);
-//    insert_floor_list_v2(&(elevators->next->next->elevator), 1);
-//    insert_floor_list_v2(&(elevators->next->next->elevator), 9);
+    insert_elevator_list(&elevators, elevator3);
+    insert_floor_list_v2(&(elevators->next->next->elevator), 5);
+    insert_floor_list_v2(&(elevators->next->next->elevator), 8);
+    insert_floor_list_v2(&(elevators->next->next->elevator), 1);
+    insert_floor_list_v2(&(elevators->next->next->elevator), 9);
 
 
     // creating passenger(s)
