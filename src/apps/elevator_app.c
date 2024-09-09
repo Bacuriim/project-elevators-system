@@ -249,6 +249,13 @@ int insert_floor_list_v1(elevators *elevator, int floor) {
     return 1; // the floor value was added to the list
 }
 
+// TO DO
+int insert_floor_list_v2(elevators *elevator, int floor) {
+    // this function inserts the floor value in ???
+
+
+}
+
 int remove_floor_list(elevators *elevator) {
     // this function removes a floor value from any place
     floor_list *aux = search_floor(elevator);
@@ -728,8 +735,8 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
 
                 // if the elevator has to remain empty and stopped for a while until someone presses the button
                 if (aux->elevator.route == NULL && *passengers != NULL) {
-                    print_elevator_state(&(aux->elevator));
-                    printf("\n");
+                    // print_elevator_state(&(aux->elevator));
+                    // printf("\n");
                     // searching the script's passenger list if there are any passengers to enter into the system
                     while (search_passengers(*passengers, elevator_time) != NULL &&
                            aux == search_elevator_v2(*elevators)) {
@@ -750,18 +757,22 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
     printf("ELAPSED TIME: %d\n", elevator_time - 1);
 }
 
+// TO DO
 int free_floor_list() {
     return 0;
 }
 
+// TO DO
 int free_elevator_list() {
     return 0;
 }
 
+// TO DO
 int free_passenger_list() {
     return 0;
 }
 
+// TO DO
 int free_all() {
     return 0;
 }
@@ -769,6 +780,12 @@ int free_all() {
 int main(void) {
     // manipulating script.txt and creating main variables
     int const maximum_floor = 25;
+
+
+
+
+
+
 
 
     // creating elevator(s)
@@ -813,6 +830,7 @@ int main(void) {
     passengers passenger13 = {"P12", 1, 15, 1, 23};
     passengers passenger14 = {"P13", 2, 13, 1, 28};
     passenger_list *passengers = NULL;
+
     insert_passenger_list(&passengers, passenger1);
     insert_passenger_list(&passengers, passenger2);
     insert_passenger_list(&passengers, passenger3);
@@ -828,7 +846,7 @@ int main(void) {
     insert_passenger_list(&passengers, passenger13);
     insert_passenger_list(&passengers, passenger14);
 
-    // testing some functions
+    // main application
     if (elevators->next == NULL) {
         move_elevator(&elevators, &passengers);
     } else {
@@ -836,7 +854,7 @@ int main(void) {
     }
 
     // closing application
-
+    free_all();
 
     return 0;
 }
