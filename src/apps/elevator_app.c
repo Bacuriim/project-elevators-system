@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "reader.h"
+#define GNU_SOURCE
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -19,6 +21,8 @@ doubly_linked_elevator_list) to implements 3 doubly linked lists.
 
 // GLOBAL VARIABLES
 int elevator_time = 0;
+
+int maximum_floor;
 
 // STRUCTS
 typedef struct doubly_linked_floor_list {
@@ -56,6 +60,11 @@ typedef struct doubly_linked_elevator_list {
     struct doubly_linked_elevator_list *next;
     struct doubly_linked_elevator_list *prev;
 } elevator_list;
+
+typedef struct simple_linked_instruction_list {
+    char *instruction;
+    struct simple_linked_instruction_list *next;
+}instruction_list;
 
 //FUNCTIONS
 void put_to_sleep(int seconds) {
@@ -526,15 +535,23 @@ void insert_elevator_list(elevator_list **list, elevators elevator) {
         // if the list already has some elevator
         elevator_list *aux1 = malloc(sizeof(elevator_list));
         aux1->elevator = elevator;
-        aux1->next = NULL;
+        aux1->prev = NULL;
 
-        // moving the pointer aux2 to the last data
-        elevator_list *aux2 = *list;
-        while (aux2->next != NULL) {
-            aux2 = aux2->next;
-        }
-        aux2->next = aux1;
-        aux1->prev = aux2;
+        (*list)->prev = aux1;
+        aux1->next = *list;
+        *list = aux1;
+
+//        elevator_list *aux1 = malloc(sizeof(elevator_list));
+//        aux1->elevator = elevator;
+//        aux1->next = NULL;
+//
+//        // moving the pointer aux2 to the last data
+//        elevator_list *aux2 = *list;
+//        while (aux2->next != NULL) {
+//            aux2 = aux2->next;
+//        }
+//        aux2->next = aux1;
+//        aux1->prev = aux2;
     }
 }
 
@@ -845,11 +862,109 @@ int free_all() {
     return 0;
 }
 
+void interpreter(instruction_list *instructionList, passenger_list **passengersList, elevator_list **elevatorsList) {
+    char *inst = instructionList->instruction;
+    char *saveptr;  // Para uso com strtok_r
+    char *token;
+
+    if (strncasecmp(inst, "T", 1) == 0) {
+        int cooldown = atoi(strtok_r(inst + 1, "_", &saveptr));
+        int first_jump = cooldown < 10 ? 3 : 4;
+        inst = inst + first_jump;
+
+        if (strncasecmp(inst, "P", 1) == 0) {
+            char *aux = strtok_r(inst, "_", &saveptr);
+            passengers passenger;
+            passenger.call_cooldown = cooldown;
+            strncpy(passenger.name, aux, sizeof(passenger.name));
+            inst = inst + 4;
+
+            if (strncasecmp(inst, "S", 1) == 0) {
+                passenger.direction = 1;
+            } else if (strncasecmp(inst, "D", 1) == 0) {
+                passenger.direction = -1;
+            } else {
+                printf("Direcao invalida!");
+                return;
+            }
+
+            inst = inst + 2;
+            passenger.initial_floor = (strncasecmp(inst, "T", 1) == 0) ? 1 : atoi(strtok_r(inst, "_", &saveptr));
+            int second_jump = passenger.initial_floor < 10 ? 2 : 3;
+            inst = inst + second_jump;
+            passenger.final_floor = (strncasecmp(inst, "T", 1) == 0) ? 1 : atoi(strtok_r(inst, "_", &saveptr));
+
+            insert_passenger_list(passengersList, passenger);
+            printf("\nPASSENGER NAME: %s", passenger.name);
+            printf("\nPASSENGER DIRECTION: %d", passenger.direction);
+            printf("\nPASSENGER INIT FLOOR: %d", passenger.initial_floor);
+            printf("\nPASSENGER FINAL FLOOR: %d", passenger.final_floor);
+        } else {
+            printf("Passageiro invalido!");
+            return;
+        }
+        printf("\nCOOLDOWN: %d\n", cooldown);
+
+    } else if (strncasecmp(inst, "E", 1) == 0) {
+        elevators elevator;
+        elevator.route = NULL;
+        elevator.passengers_to_enter = NULL;
+        elevator.passengers_inside = NULL;
+
+        token = strtok_r(inst, "_", &saveptr);
+        strncpy(elevator.name, token, sizeof(elevator.name));
+
+        token = strtok_r(NULL, "_", &saveptr);
+        elevator.actual_floor = atoi(token);
+
+        token = strtok_r(NULL, "_", &saveptr);
+        if (strncasecmp(token, "S", 1) == 0) {
+            elevator.direction = 1;
+        } else if (strncasecmp(token, "D", 1) == 0) {
+            elevator.direction = -1;
+        } else {
+            printf("Direcao invalida!");
+            return;
+        }
+
+        // Processar lista de andares
+        token = strtok_r(NULL, ",", &saveptr);
+        while (token != NULL) {
+            int floor = (strncasecmp(token, "T", 1) == 0) ? 1 : atoi(token);
+            insert_floor_list_v2(&elevator, floor);
+            token = strtok_r(NULL, ",", &saveptr); // Próximo andar
+        }
+
+        printf("\nELEVATOR NAME: %s", elevator.name);
+        printf("\nELEVATOR AC FLOOR: %d", elevator.actual_floor);
+        printf("\nELEVATOR DIRECTION: %d\n", elevator.direction);
+        print_elevator_route(&elevator);
+        insert_elevator_list(elevatorsList, elevator);
+        return;
+
+    } else if (strncasecmp(inst, "AM_", 3) == 0) {
+        inst = inst + 3;
+        maximum_floor = atoi(inst) >= 5 && atoi(inst) <= 25 ? atoi(inst) : printf("Andar Maximo Invalido!");
+        printf("\nMAXIMUM FLOOR: %d\n\n", maximum_floor);
+        return;
+    } else {
+        printf("Instrucao invalida");
+        return;
+    }
+}
+
 int main(void) {
+    char archive[80] = "C:\\dev\\repos\\git\\C Projects\\project-elevators-system\\src\\scripts\\script1.txt";
     // manipulating script.txt and creating main variables
-    int const maximum_floor = 25;
 
+    passenger_list *passengers = NULL;
+    elevator_list *elevators = NULL;
+    instruction_list *instruction = (instruction_list *) reader(archive);
 
+    while (instruction != NULL) {
+        interpreter(instruction, &passengers, &elevators);
+        instruction = instruction->next;
+    }
 
 
 
@@ -857,62 +972,28 @@ int main(void) {
 
 
     // creating elevator(s)
-    elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL};
-    elevators elevator2 = {"E2", 11, -1, NULL, NULL, NULL};
-    elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL};
-    elevator_list *elevators = NULL;
-
-    insert_elevator_list(&elevators, elevator1);
-    insert_floor_list_v2(&(elevators->elevator), 6);
-    insert_floor_list_v2(&(elevators->elevator), 9);
-    insert_floor_list_v2(&(elevators->elevator), 8);
-
-    insert_elevator_list(&elevators, elevator2);
-    insert_floor_list_v2(&(elevators->next->elevator), 5);
-    insert_floor_list_v2(&(elevators->next->elevator), 8);
-    insert_floor_list_v2(&(elevators->next->elevator), 9);
-    insert_floor_list_v2(&(elevators->next->elevator), 3);
-    insert_floor_list_v2(&(elevators->next->elevator), 2);
-    insert_floor_list_v2(&(elevators->next->elevator), 1);
-
-    insert_elevator_list(&elevators, elevator3);
-    insert_floor_list_v2(&(elevators->next->next->elevator), 5);
-    insert_floor_list_v2(&(elevators->next->next->elevator), 8);
-    insert_floor_list_v2(&(elevators->next->next->elevator), 1);
-    insert_floor_list_v2(&(elevators->next->next->elevator), 9);
-
-
-    // creating passenger(s)
-    passengers passenger1 = {"P01", 4, 6, 1, 5};
-    passengers passenger2 = {"P01", 6, 4, -1, 8};
-    passengers passenger3 = {"P02", 5, 10, 1, 9};
-    passengers passenger4 = {"P03", 3, 9, 1, 10};
-    passengers passenger5 = {"P04", 6, 1, -1, 10};
-    passengers passenger6 = {"P05", 8, 15, 1, 10};
-    passengers passenger7 = {"P06", 9, 2, -1, 15};
-    passengers passenger8 = {"P07", 2, 13, 1, 15};
-    passengers passenger9 = {"P08", 8, 1, -1, 18};
-    passengers passenger10 = {"P01", 16, 3, -1, 21};
-    passengers passenger11 = {"P10", 1, 13, 1, 21};
-    passengers passenger12 = {"P11", 1, 12, 1, 21};
-    passengers passenger13 = {"P12", 1, 15, 1, 23};
-    passengers passenger14 = {"P13", 2, 13, 1, 28};
-    passenger_list *passengers = NULL;
-
-    insert_passenger_list(&passengers, passenger1);
-    insert_passenger_list(&passengers, passenger2);
-    insert_passenger_list(&passengers, passenger3);
-    insert_passenger_list(&passengers, passenger4);
-    insert_passenger_list(&passengers, passenger5);
-    insert_passenger_list(&passengers, passenger6);
-    insert_passenger_list(&passengers, passenger7);
-    insert_passenger_list(&passengers, passenger8);
-    insert_passenger_list(&passengers, passenger9);
-    insert_passenger_list(&passengers, passenger10);
-    insert_passenger_list(&passengers, passenger11);
-    insert_passenger_list(&passengers, passenger12);
-    insert_passenger_list(&passengers, passenger13);
-    insert_passenger_list(&passengers, passenger14);
+//    elevators elevator1 = {"E1", 4, 1, NULL, NULL, NULL};
+//    elevators elevator2 = {"E2", 11, -1, NULL, NULL, NULL};
+//    elevators elevator3 = {"E3", 20, -1, NULL, NULL, NULL};
+//
+//    insert_elevator_list(&elevators, elevator1);
+//    insert_floor_list_v2(&(elevators->elevator), 6);
+//    insert_floor_list_v2(&(elevators->elevator), 9);
+//    insert_floor_list_v2(&(elevators->elevator), 8);
+//
+//    insert_elevator_list(&elevators, elevator2);
+//    insert_floor_list_v2(&(elevators->next->elevator), 5);
+//    insert_floor_list_v2(&(elevators->next->elevator), 8);
+//    insert_floor_list_v2(&(elevators->next->elevator), 9);
+//    insert_floor_list_v2(&(elevators->next->elevator), 3);
+//    insert_floor_list_v2(&(elevators->next->elevator), 2);
+//    insert_floor_list_v2(&(elevators->next->elevator), 1);
+//
+//    insert_elevator_list(&elevators, elevator3);
+//    insert_floor_list_v2(&(elevators->next->next->elevator), 5);
+//    insert_floor_list_v2(&(elevators->next->next->elevator), 8);
+//    insert_floor_list_v2(&(elevators->next->next->elevator), 1);
+//    insert_floor_list_v2(&(elevators->next->next->elevator), 9);
 
     // main application
     if (elevators->next == NULL) {
