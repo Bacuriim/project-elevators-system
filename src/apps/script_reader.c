@@ -1,7 +1,3 @@
-//
-// Created by Conrado Einstein on 13/09/2024.
-//
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +5,7 @@
 typedef struct simple_linked_instruction_list {
     char *instruction;
     struct simple_linked_instruction_list *next;
-}instruction_list;
+} instruction_list;
 
 void add_instruction(instruction_list **instructions, char *value) {
     instruction_list *new_node = malloc(sizeof(instruction_list));
@@ -33,27 +29,27 @@ instruction_list *reader(char archive[]) {
 
     file = fopen(archive, "r");
     if (file == NULL) {
-        printf("Erro ao abrir o arquivo!\n");
+        printf("Error opening file!\n");
         return NULL;
     }
 
-    // Ler cada linha do arquivo até o fim
+    // read each line of the file until the end
     while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        // Remover o caractere de nova linha, se presente
+        // remove newline character if present
         buffer[strcspn(buffer, "\n")] = '\0';
         split_and_add_instructions(&instructions, buffer);
     }
 
-    // Fechar o arquivo
+    // close the file
     fclose(file);
 
-    // Exibir as instruções armazenadas
+    // display stored instructions
     instruction_list *current = instructions;
     while (current != NULL) {
-        printf("Instrucao: %s\n", current->instruction);
+        //        printf("Instrucao: %s\n", current->instruction);
         current = current->next;
     }
 
-    // Liberar a memória alocada
+    // free the allocated memory
     return instructions;
 }
