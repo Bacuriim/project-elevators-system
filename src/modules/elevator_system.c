@@ -1,76 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include "../headers/elevator_system.h"
 #include "../headers/script_reader.h"
 
 #ifdef _WIN32
-#include <Windows.h>
-#define PATH_SEPARATOR "\\"
+    #include <Windows.h>
 #else
     #include <unistd.h>
-    #define PATH_SEPARATOR "/"
 #endif
 
-/*
-Developers: Conrado Einstein Malessa de Oliveira / Hiel Saraiva Freitas de Queiroga
-
-This code simulates an Elevator using 2 data structs (passengers e elevators) and 3 node strucs (doubly_linked_floor_list, doubly_linked_passenger_list and
-doubly_linked_elevator_list) to implements 3 doubly linked lists.
- */
-
-// GLOBAL VARIABLES
-int program_time = 0;
-
-int maximum_floor;
-
-// STRUCTS
-typedef struct doubly_linked_floor_list {
-    int floor;
-    struct doubly_linked_floor_list *next;
-    struct doubly_linked_floor_list *prev;
-} floor_list;
-
-typedef struct doubly_linked_time_list {
-    int time;
-    struct doubly_linked_time_list *next;
-    struct doubly_linked_time_list *prev;
-} time_list;
-
-typedef struct passengers {
-    char name[4]; // for example: P01, P06, P21. Including `\0`
-    int initial_floor;
-    int final_floor;
-    int direction; // 1 = up, -1 = down
-    int call_cooldown; // in seconds
-} passengers;
-
-typedef struct doubly_linked_passenger_list {
-    passengers passenger;
-    struct doubly_linked_passenger_list *next;
-    struct doubly_linked_passenger_list *prev;
-} passenger_list;
-
-typedef struct elevators {
-    char name[3]; // For example: E1, E4, E6. Including `\0`
-    int actual_floor;
-    int direction; // 1 = up, -1 = down
-    int timer; // travel time
-    int floor_counter;
-    struct doubly_linked_floor_list *route; // the route the elevator must follow
-    struct doubly_linked_passenger_list *passengers_inside; // the passengers who are inside the elevator
-    struct doubly_linked_passenger_list *passengers_to_enter;
-    // the passengers that pressed the button and are waiting for enter the elevator
-    struct doubly_linked_floor_list *history;
-    struct doubly_linked_time_list *time;
-} elevators;
-
-typedef struct doubly_linked_elevator_list {
-    elevators elevator;
-    struct doubly_linked_elevator_list *next;
-    struct doubly_linked_elevator_list *prev;
-} elevator_list;
-
-//FUNCTIONS
 void put_to_sleep(int seconds) {
     // this function stops the program flow for a while, both mac and windows
 #ifdef _WIN32
@@ -320,7 +259,7 @@ int insert_floor_list_v2(elevators *elevator, int floor) {
             // insert in the middle or at the end
             floor_list *sorted_current = sorted_list;
             while (sorted_current->next != NULL && get_proximity(elevator->actual_floor, aux2->floor) >= get_proximity(
-                       elevator->actual_floor, sorted_current->next->floor)) {
+                    elevator->actual_floor, sorted_current->next->floor)) {
                 sorted_current = sorted_current->next;
             }
             aux2->next = sorted_current->next;
@@ -1209,7 +1148,7 @@ int interpreter(instruction_list *instructionList, passenger_list **passengersLi
 
             if (is_floor_interval_ok(maximum_floor, *passengersList, *elevatorsList) != 1) {
                 printf(
-                    "The passenger floor range or the elevator floor range does not comply with the building's maximum floor");
+                        "The passenger floor range or the elevator floor range does not comply with the building's maximum floor");
                 return 1; // problem at the script
             }
 
@@ -1223,43 +1162,4 @@ int interpreter(instruction_list *instructionList, passenger_list **passengersLi
         printf("Invalid instruction");
         return 1; // problem at the script
     }
-}
-
-int main(void) {
-    char script_name[31];
-    printf("Enter the name of the file that will be read as a script, limit 30 characters(put the file extension): ");
-    scanf("%30s", script_name);
-    printf("\n");
-
-    char archive[80] = ".." PATH_SEPARATOR "src" PATH_SEPARATOR "scripts" PATH_SEPARATOR;
-    strcat(archive, script_name);
-
-    // manipulating script.txt and creating main lists
-    passenger_list *passengers = NULL;
-    elevator_list *elevators = NULL;
-    instruction_list *instruction = (instruction_list *) reader(archive);
-
-    if (instruction == NULL) {
-        printf("The entered file was not found!\n");
-        return 1; // script name error
-    }
-
-    while (instruction != NULL) {
-        int state = interpreter(instruction, &passengers, &elevators);
-        if (state == 1)
-            return 1; // script error
-        instruction = instruction->next;
-    }
-
-    // main application
-    if (elevators->next == NULL) {
-        move_elevator(&elevators, &passengers);
-    } else {
-        move_elevators(&elevators, &passengers);
-    }
-
-    // closing application
-    free_all(&passengers, &elevators);
-
-    return 0;
 }
