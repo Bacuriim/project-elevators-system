@@ -568,7 +568,6 @@ void insert_elevator_list(elevator_list **list, elevators elevator) {
     }
 }
 
-// DOING
 int remove_elevator_list(elevator_list **list) {
     // this function removes a elevator from the elevators script list (from beginning)
     if (*list != NULL) {
@@ -585,7 +584,6 @@ int remove_elevator_list(elevator_list **list) {
     return 0;
 }
 
-// DOING
 void insert_history_list(elevators *elevator, int floor) {
     // this function inserts at the end
     if (elevator->history == NULL) {
@@ -611,7 +609,6 @@ void insert_history_list(elevators *elevator, int floor) {
     }
 }
 
-// DOING
 int remove_from_history_list(elevators *elevator) {
     // this function removes from the beginning
     if (elevator->history != NULL)
@@ -630,7 +627,6 @@ int remove_from_history_list(elevators *elevator) {
     return 0; // the list is empty
 }
 
-// DOING
 void insert_timer_list(elevators *elevator, int time) {
     // this function inserts at the end
     if (elevator->time == NULL) {
@@ -656,7 +652,6 @@ void insert_timer_list(elevators *elevator, int time) {
     }
 }
 
-// DOING
 int remove_from_timer_list(elevators *elevator) {
     // this function removes from the beginning
     if (elevator->time != NULL)
@@ -675,7 +670,6 @@ int remove_from_timer_list(elevators *elevator) {
     return 0; // the list is empty
 }
 
-// DOING
 void print_elevator_history(elevators *elevator) {
     // this function prints the elevator summary
     floor_list *auxF = elevator->history;
@@ -1010,24 +1004,72 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
     printf("END: Total time: %ds & Total movements: %d\n", program_time - 1, movements);
 }
 
-// TO DO
 int free_floor_list(floor_list **list) {
-    return 0;
+    if(*list != NULL) {
+        while(*list != NULL) {
+            floor_list *aux = *list;
+            *list = (*list)->next;
+            if(*list != NULL) {
+                (*list)->prev = NULL;
+            }
+            free(aux);
+        }
+        return 1; // free all
+    }
+    return 0; // list already is empty
 }
 
-// TO DO
-int free_elevator_list(elevator_list **list) {
-    return 0;
+int free_time_list(time_list **list) {
+    if(*list != NULL) {
+        while(*list != NULL) {
+            time_list *aux = *list;
+            *list = (*list)->next;
+            if(*list != NULL) {
+                (*list)->prev = NULL;
+            }
+            free(aux);
+        }
+        return 1; // free all
+    }
+    return 0; // list already is empty
 }
 
-// TO DO
 int free_passenger_list(passenger_list **list) {
-    return 0;
+    if(*list != NULL) {
+        while(*list != NULL) {
+            passenger_list *aux = *list;
+            *list = (*list)->next;
+            if(*list != NULL) {
+                (*list)->prev = NULL;
+            }
+            free(aux);
+        }
+        return 1; // free all
+    }
+    return 0; // list already is empty
 }
 
-// TO DO
-int free_all(floor_list **listF, passenger_list **listP, elevator_list **listE) {
-    free_floor_list(listF);
+int free_elevator_list(elevator_list **list) {
+    if(*list != NULL) {
+        while(*list != NULL) {
+            free_floor_list(&((*list)->elevator.route));
+            free_floor_list(&((*list)->elevator.history));
+            free_passenger_list(&((*list)->elevator.passengers_to_enter));
+            free_passenger_list(&((*list)->elevator.passengers_inside));
+            free_time_list(&((*list)->elevator.time));
+            elevator_list *aux = *list;
+            *list = (*list)->next;
+            if(*list != NULL) {
+                (*list)->prev = NULL;
+            }
+            free(aux);
+        }
+        return 1; // free all
+    }
+    return 0; // list already is empty
+}
+
+int free_all(passenger_list **listP, elevator_list **listE) {
     free_passenger_list(listP);
     free_elevator_list(listE);
     return 0;
@@ -1222,7 +1264,7 @@ int main(void) {
     }
 
     // closing application
-    // free_all();
+    free_all(&passengers, &elevators);
 
     return 0;
 }
