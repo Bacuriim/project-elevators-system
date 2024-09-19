@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "../headers/script_reader.h"
 
-typedef struct simple_linked_instruction_list {
-    char *instruction;
-    struct simple_linked_instruction_list *next;
-} instruction_list;
 
 void add_instruction(instruction_list **instructions, char *value) {
     instruction_list *new_node = malloc(sizeof(instruction_list));

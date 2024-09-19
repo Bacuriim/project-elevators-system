@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
-#include "reader.h"
+#include "../headers/script_reader.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -69,11 +69,6 @@ typedef struct doubly_linked_elevator_list {
     struct doubly_linked_elevator_list *next;
     struct doubly_linked_elevator_list *prev;
 } elevator_list;
-
-typedef struct simple_linked_instruction_list {
-    char *instruction;
-    struct simple_linked_instruction_list *next;
-} instruction_list;
 
 //FUNCTIONS
 void put_to_sleep(int seconds) {
