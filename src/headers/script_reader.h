@@ -9,7 +9,9 @@ typedef struct simple_linked_instruction_list {
 
 // FUNCTIONS
 void add_instruction(instruction_list **instructions, char *value);
+
 void split_and_add_instructions(instruction_list **instructions, char *line);
+
 instruction_list *reader(char archive[]);
 
 #endif

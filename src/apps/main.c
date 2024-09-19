@@ -1,3 +1,7 @@
+/*
+Developers: Conrado Einstein Malessa de Oliveira / Hiel Saraiva Freitas de Queiroga
+This code simulates an Elevator
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -5,17 +9,10 @@
 #include "../headers/elevator_system.h"
 
 #ifdef _WIN32
-    #define PATH_SEPARATOR "\\"
+#define PATH_SEPARATOR "\\"
 #else
-    #define PATH_SEPARATOR "/"
+#define PATH_SEPARATOR "/"
 #endif
-
-/*
-Developers: Conrado Einstein Malessa de Oliveira / Hiel Saraiva Freitas de Queiroga
-
-This code simulates an Elevator using 2 data structs (passengers e elevators) and 3 node strucs (doubly_linked_floor_list, doubly_linked_passenger_list and
-doubly_linked_elevator_list) to implements 3 doubly linked lists.
- */
 
 // GLOBAL VARIABLES
 int program_time = 0;

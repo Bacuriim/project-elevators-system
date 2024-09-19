@@ -2,12 +2,11 @@
 #include <stdlib.h>
 #include <strings.h>
 #include "../headers/elevator_system.h"
-#include "../headers/script_reader.h"
 
 #ifdef _WIN32
-    #include <Windows.h>
+#include <Windows.h>
 #else
-    #include <unistd.h>
+#include <unistd.h>
 #endif
 
 void put_to_sleep(int seconds) {
@@ -545,13 +544,11 @@ void insert_history_list(elevators *elevator, int floor) {
 
 int remove_from_history_list(elevators *elevator) {
     // this function removes from the beginning
-    if (elevator->history != NULL)
-    {
+    if (elevator->history != NULL) {
         floor_list *aux = elevator->history;
         elevator->history = (elevator->history)->next;
 
-        if (elevator->history != NULL)
-        {
+        if (elevator->history != NULL) {
             (elevator->history)->prev = NULL;
         }
         free(aux);
@@ -588,13 +585,11 @@ void insert_timer_list(elevators *elevator, int time) {
 
 int remove_from_timer_list(elevators *elevator) {
     // this function removes from the beginning
-    if (elevator->time != NULL)
-    {
+    if (elevator->time != NULL) {
         time_list *aux = elevator->time;
         elevator->time = (elevator->time)->next;
 
-        if (elevator->time != NULL)
-        {
+        if (elevator->time != NULL) {
             (elevator->time)->prev = NULL;
         }
         free(aux);
@@ -610,12 +605,12 @@ void print_elevator_history(elevators *elevator) {
     time_list *auxT = elevator->time;
     int maximum_time = 0;
     printf("%s: ", elevator->name);
-    while(auxF != NULL && auxT != NULL) {
+    while (auxF != NULL && auxT != NULL) {
         printf("%d(%d)", auxF->floor, auxT->time);
-        if(auxF->next != NULL && auxT->next != NULL) {
+        if (auxF->next != NULL && auxT->next != NULL) {
             printf("->");
         }
-        if(maximum_time < auxT->time) {
+        if (maximum_time < auxT->time) {
             maximum_time = auxT->time;
         }
         auxF = auxF->next;
@@ -786,7 +781,8 @@ void move_elevator(elevator_list **elevator, passenger_list **passengers) {
         invert_elevator_direction(&((*elevator)->elevator));
 
         // moving the elevator
-        if ((*elevator)->elevator.passengers_inside != NULL || (*elevator)->elevator.passengers_to_enter != NULL || (*elevator)->elevator.route != NULL ) {
+        if ((*elevator)->elevator.passengers_inside != NULL || (*elevator)->elevator.passengers_to_enter != NULL ||
+            (*elevator)->elevator.route != NULL) {
             if ((&((*elevator)->elevator))->direction == 1) {
                 go_up(&((*elevator)->elevator));
                 put_to_sleep(1); // sleep fora second
@@ -896,7 +892,8 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
                 invert_elevator_direction(&(aux->elevator));
 
                 // moving the elevator
-                if (aux->elevator.passengers_inside != NULL || aux->elevator.passengers_to_enter != NULL || aux->elevator.route != NULL ) {
+                if (aux->elevator.passengers_inside != NULL || aux->elevator.passengers_to_enter != NULL ||
+                    aux->elevator.route != NULL) {
                     if ((&(aux->elevator))->direction == 1) {
                         go_up(&(aux->elevator));
                         ++(aux->elevator.floor_counter);
@@ -930,7 +927,7 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
     }
     aux = *elevators;
     int movements = 0;
-    while(aux != NULL) {
+    while (aux != NULL) {
         print_elevator_history(&(aux->elevator));
         movements = movements + aux->elevator.floor_counter;
         aux = aux->next;
@@ -939,11 +936,11 @@ void move_elevators(elevator_list **elevators, passenger_list **passengers) {
 }
 
 int free_floor_list(floor_list **list) {
-    if(*list != NULL) {
-        while(*list != NULL) {
+    if (*list != NULL) {
+        while (*list != NULL) {
             floor_list *aux = *list;
             *list = (*list)->next;
-            if(*list != NULL) {
+            if (*list != NULL) {
                 (*list)->prev = NULL;
             }
             free(aux);
@@ -954,11 +951,11 @@ int free_floor_list(floor_list **list) {
 }
 
 int free_time_list(time_list **list) {
-    if(*list != NULL) {
-        while(*list != NULL) {
+    if (*list != NULL) {
+        while (*list != NULL) {
             time_list *aux = *list;
             *list = (*list)->next;
-            if(*list != NULL) {
+            if (*list != NULL) {
                 (*list)->prev = NULL;
             }
             free(aux);
@@ -969,11 +966,11 @@ int free_time_list(time_list **list) {
 }
 
 int free_passenger_list(passenger_list **list) {
-    if(*list != NULL) {
-        while(*list != NULL) {
+    if (*list != NULL) {
+        while (*list != NULL) {
             passenger_list *aux = *list;
             *list = (*list)->next;
-            if(*list != NULL) {
+            if (*list != NULL) {
                 (*list)->prev = NULL;
             }
             free(aux);
@@ -984,8 +981,8 @@ int free_passenger_list(passenger_list **list) {
 }
 
 int free_elevator_list(elevator_list **list) {
-    if(*list != NULL) {
-        while(*list != NULL) {
+    if (*list != NULL) {
+        while (*list != NULL) {
             free_floor_list(&((*list)->elevator.route));
             free_floor_list(&((*list)->elevator.history));
             free_passenger_list(&((*list)->elevator.passengers_to_enter));
@@ -993,7 +990,7 @@ int free_elevator_list(elevator_list **list) {
             free_time_list(&((*list)->elevator.time));
             elevator_list *aux = *list;
             *list = (*list)->next;
-            if(*list != NULL) {
+            if (*list != NULL) {
                 (*list)->prev = NULL;
             }
             free(aux);
